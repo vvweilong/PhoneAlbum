@@ -21,35 +21,10 @@ class PhotoViewModel : ViewModel() {
 
     fun getPhotoDatas(context:Context){
         GlobalScope.async(Dispatchers.IO) {
-            val cursor = context.contentResolver.query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                null,
-                null,
-                null,
-                null
-            )
-
-            cursor?.let {
-                photoDataState.postValue(PhotoDataState.LOADING)
-                it.moveToFirst()
-                it.moveToPrevious()
-
-                val dataList = ArrayList<PhotoDataModel>()
-
-                while (it.moveToNext()) {
-                    val pathIndex = it.getColumnIndex(MediaStore.Images.Media.DATA)
-                    val nameIndex = it.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
-                    val photoDataModel =
-                        PhotoDataModel(it.getString(pathIndex), it.getString(nameIndex))
-                    dataList.add(photoDataModel)
-                    Log.i("adapter", "------------")
-                }
-
-                photoLiveData.postValue(dataList)
-                photoDataState.postValue(PhotoDataState.SUCCESS)
-
-            }
-            cursor?.close()
+            photoDataState.postValue(PhotoDataState.LOADING)
+            val photoAlbum = PhotoReponsitory.getPhotoAlbum(context)
+            photoLiveData.postValue(photoAlbum)
+            photoDataState.postValue(PhotoDataState.SUCCESS)
         }
     }
 
