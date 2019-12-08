@@ -14,13 +14,14 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 class PhotoViewModel : ViewModel() {
     val photoLiveData = MutableLiveData<ArrayList<PhotoDataModel>>()
     val photoDataState = MutableLiveData<PhotoDataState>()
 
     fun getPhotoDatas(context:Context){
-        GlobalScope.async(Dispatchers.IO) {
+        GlobalScope.launch  {
             photoDataState.postValue(PhotoDataState.LOADING)
             val photoAlbum = PhotoReponsitory.getPhotoAlbum(context)
             photoLiveData.postValue(photoAlbum)

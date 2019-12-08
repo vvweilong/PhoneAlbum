@@ -9,6 +9,8 @@ import androidx.core.content.FileProvider
 
 object PhotoReponsitory {
 
+    private val photoMemoryCache = ArrayList<PhotoDataModel>()
+
     fun getPhotoAlbum(context: Context):ArrayList<PhotoDataModel>{
 
         val dataList = ArrayList<PhotoDataModel>()

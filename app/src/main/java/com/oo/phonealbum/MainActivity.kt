@@ -1,6 +1,11 @@
 package com.oo.phonealbum
 
+import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
+import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
@@ -9,6 +14,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.appcompat.view.menu.MenuPresenter
 import androidx.appcompat.widget.Toolbar
@@ -89,11 +95,50 @@ class MainActivity : AppCompatActivity(), Observer<ArrayList<PhotoDataModel>>,
         setContentView(R.layout.activity_main)
         mToolBar.setOnMenuItemClickListener(this)
 
-        if (ActivityCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_DENIED) {
-                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),0)
-        }else{
+
+        val showDialog  = !ActivityCompat.shouldShowRequestPermissionRationale(this,android.Manifest.permission.READ_EXTERNAL_STORAGE)
+
+        val hasPremission =ActivityCompat.checkSelfPermission(this,android.Manifest.permission.READ_EXTERNAL_STORAGE)==PackageManager.PERMISSION_GRANTED
+
+        if (hasPremission) {
             viewModel.getPhotoDatas(applicationContext)
+        }else{
+            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),1)
         }
+    }
+
+    private fun showSettionDialog() {
+        val builder = AlertDialog.Builder(this)
+        val dialog = builder.setCancelable(false).create()
+        dialog.setTitle("读取存储权限")
+        dialog.setMessage("展示照片，应用需要读取相册文件的权限，请在设置中赋予应用相应权限")
+        dialog.setButton(
+            AlertDialog.BUTTON_POSITIVE, "去设置"
+        ) { dialog, which ->
+            dialog.dismiss()
+            jumpToSetting()
+        }
+        dialog.setButton(
+            AlertDialog.BUTTON_NEGATIVE, "取消"
+        ) { dialog, which ->
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
+
+    fun jumpToSetting(){
+        val localIntent =  Intent();
+        localIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (Build.VERSION.SDK_INT >= 9) {
+            localIntent.setAction("android.settings.APPLICATION_DETAILS_SETTINGS");
+            localIntent.setData(Uri.fromParts("package", packageName, null));
+        } else if (Build.VERSION.SDK_INT <= 8) {
+            localIntent.setAction(Intent.ACTION_VIEW);
+            localIntent.setClassName("com.android.settings", "com.android.settings.InstalledAppDetails");
+            localIntent.putExtra("com.android.settings.ApplicationPkgName", packageName);
+        }
+        startActivity(localIntent)
     }
 
     override fun onRequestPermissionsResult(
@@ -104,6 +149,8 @@ class MainActivity : AppCompatActivity(), Observer<ArrayList<PhotoDataModel>>,
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults[0]==PackageManager.PERMISSION_GRANTED) {
            viewModel.getPhotoDatas(this)
+        }else{
+            showSettionDialog()
         }
     }
 
